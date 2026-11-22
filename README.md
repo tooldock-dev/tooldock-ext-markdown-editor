@@ -2,7 +2,7 @@
 
 ToolDock 擴充：編輯 Markdown、即時預覽，用工具列與快捷鍵插入常用語法；匯出 PDF 與單一 HTML，文件中的表格可以交給報表產生器輸出 Excel。
 
-ToolDock 1.7.0 起已內建這個擴充；1.4.0 到 1.6.x 的使用者可以從擴充商店安裝。商店發佈新版時，內建版本也會收到更新。
+ToolDock 1.4.0 以上可以從擴充商店安裝。ToolDock 1.7.0～1.8.x 曾經內建這個擴充，1.9.0 起改由商店提供；從舊版升級的使用者安裝後，原本的草稿與最近開啟的檔案都還在。
 
 ## 功能
 
@@ -80,7 +80,7 @@ npm test
 | `npm run pack` | 打包成 `dist/markdown-editor-<版本>.tbx`，只含正式相依 |
 | `npm run install-local` | 打包並安裝到本機的 ToolDock |
 
-> 這個擴充同時是 ToolDock 的內建擴充，原始碼也放在 ToolDock repo 的 `extensions/markdown-editor/`。兩邊的 `backend/`、`ui/`、`test/` 應保持一致：先在其中一邊修改，再同步到另一邊。
+> 1.9.0 起這個 repo 是唯一的原始碼。ToolDock repo 的自我測試會從平台 repo 旁的這個資料夾以連結方式安裝，測試分享、工具列與 PDF 匯出，修改後可以在 ToolDock repo 執行 `npm run selftest` 一併確認。
 
 ## 發佈
 
