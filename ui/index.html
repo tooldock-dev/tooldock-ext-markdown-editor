@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <title>Markdown 編輯器</title>
+  <link rel="stylesheet" href="tooldock://sdk/ui-base.css">
+  <link rel="stylesheet" href="document.css">
+  <link rel="stylesheet" href="../node_modules/highlight.js/styles/github.css">
+  <style>
+    html, body { height: 100%; }
+    body { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; }
+
+    /* 工具列 */
+    #toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 6px 10px; border-bottom: 1px solid var(--border); background: var(--bg-elevated); }
+    #toolbar .grp { display: flex; align-items: center; gap: 2px; padding-right: 6px; margin-right: 4px; border-right: 1px solid var(--border); }
+    #toolbar .grp:last-child { border-right: 0; }
+    #toolbar .spacer { flex: 1; }
+    .tb { min-width: 30px; min-height: 28px; padding: 0 7px; background: transparent; color: var(--fg); border: 1px solid transparent; border-radius: 4px; font-size: 13px; line-height: 1; }
+    .tb:hover { background: var(--bg-hover); }
+    .tb.on { background: var(--bg-active); border-color: var(--border-strong); color: var(--fg-strong); }
+    .tb b, .tb i, .tb s { font-family: Georgia, "Times New Roman", serif; font-size: 15px; }
+    .tb .mono { font-size: 12px; }
+    .tb.text { font-size: 12px; }
+    .seg { display: flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+    .seg button { min-height: 26px; padding: 0 10px; background: transparent; color: var(--fg-muted); border: 0; border-radius: 0; font-size: 12px; }
+    .seg button + button { border-left: 1px solid var(--border); }
+    .seg button.on { background: var(--bg-active); color: var(--fg-strong); }
+
+    /* 下拉選單 */
+    .menu-wrap { position: relative; }
+    .menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; min-width: 180px; max-width: 420px; padding: 4px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
+    .menu.right { left: auto; right: 0; }
+    .menu[hidden] { display: none; }
+    .menu .item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 28px; padding: 4px 10px; background: transparent; color: var(--fg); border: 0; border-radius: 4px; text-align: left; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .menu .item:hover:not(:disabled) { background: var(--bg-hover); }
+    .menu .item .k { margin-left: auto; color: var(--fg-faint); font-size: 11px; }
+    .menu .sep { height: 1px; margin: 4px 2px; background: var(--border); }
+    .menu .label { padding: 4px 10px 2px; color: var(--fg-faint); font-size: 11px; }
+    .menu .h1 { font-size: 18px; font-weight: 600; } .menu .h2 { font-size: 16px; font-weight: 600; } .menu .h3 { font-size: 14px; font-weight: 600; }
+    #gridPick { display: grid; grid-template-columns: repeat(10, 16px); gap: 2px; padding: 6px; }
+    #gridPick span { width: 16px; height: 16px; border: 1px solid var(--border-strong); border-radius: 2px; }
+    #gridPick span.on { background: var(--accent); border-color: var(--accent); }
+    #gridLabel { padding: 0 6px 4px; font-size: 12px; color: var(--fg-muted); text-align: center; }
+
+    /* 編輯區與預覽 */
+    #main { display: grid; grid-template-columns: var(--left, 1fr) 5px var(--right, 1fr); min-height: 0; }
+    body.mode-edit #main { grid-template-columns: 1fr 0 0; }
+    body.mode-preview #main { grid-template-columns: 0 0 1fr; }
+    body.mode-edit #previewPane, body.mode-edit #splitter, body.mode-preview #editor, body.mode-preview #splitter { display: none; }
+    #editor { width: 100%; height: 100%; margin: 0; padding: 18px 22px 40vh; resize: none; border: 0; border-radius: 0; outline: none; background: var(--bg); color: var(--fg-strong); font-family: var(--mono); font-size: var(--editor-font, 14px); line-height: 1.65; tab-size: 2; white-space: pre-wrap; overflow-wrap: anywhere; }
+    #splitter { cursor: col-resize; background: var(--border); }
+    #splitter:hover, #splitter.drag { background: var(--accent); }
+    #previewPane { overflow: auto; background: var(--bg-sunken); }
+    #paper { box-sizing: border-box; max-width: 210mm; min-height: calc(100% - 48px); margin: 24px auto; padding: min(18mm, 5vw) min(16mm, 4vw); background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .18); border-radius: 2px; }
+    #paper.empty::before { content: '預覽會顯示在這裡'; color: #9aa0a6; }
+    #paper a { cursor: pointer; }
+
+    /* 狀態列 */
+    #status { display: flex; gap: 14px; align-items: center; padding: 4px 12px; border-top: 1px solid var(--border); background: var(--bg-elevated); font-size: 12px; color: var(--fg-muted); white-space: nowrap; overflow: hidden; }
+    #status .name { color: var(--fg-strong); max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+    #status .dirty { color: var(--warn); }
+    #status .notice { margin-left: auto; color: var(--info); overflow: hidden; text-overflow: ellipsis; }
+    #status .notice.err { color: var(--err); }
+
+    /* 提示列（還原草稿、外部修改） */
+    #banner { display: flex; gap: 10px; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); background: rgba(14, 122, 211, .12); color: var(--fg-strong); font-size: 13px; }
+    #banner[hidden] { display: none; }
+    #banner .msg { flex: 1; }
+    #top { display: flex; flex-direction: column; }
+  </style>
+</head>
+<body class="mode-split">
+  <div id="top">
+    <div id="toolbar">
+      <div class="grp">
+        <div class="menu-wrap">
+          <button class="tb text" id="fileBtn" title="檔案">📂 檔案 ▾</button>
+          <div class="menu" id="fileMenu" hidden>
+            <button class="item" data-cmd="new">新文件<span class="k" data-key="N"></span></button>
+            <button class="item" data-cmd="open">開啟…<span class="k" data-key="O"></span></button>
+            <div class="sep"></div>
+            <button class="item" data-cmd="save">儲存<span class="k" data-key="S"></span></button>
+            <button class="item" data-cmd="saveAs">另存新檔…<span class="k" data-key="⌥S"></span></button>
+            <div id="recentBox"></div>
+          </div>
+        </div>
+        <button class="tb" id="saveBtn" data-cmd="save" title="儲存">💾</button>
+      </div>
+      <div class="grp">
+        <div class="menu-wrap">
+          <button class="tb text" id="headingBtn" title="標題">H ▾</button>
+          <div class="menu" id="headingMenu" hidden>
+            <button class="item" data-heading="0">段落<span class="k" data-key="0"></span></button>
+            <button class="item h1" data-heading="1">標題 1<span class="k" data-key="1"></span></button>
+            <button class="item h2" data-heading="2">標題 2<span class="k" data-key="2"></span></button>
+            <button class="item h3" data-heading="3">標題 3<span class="k" data-key="3"></span></button>
+            <button class="item" data-heading="4">標題 4<span class="k" data-key="4"></span></button>
+            <button class="item" data-heading="5">標題 5<span class="k" data-key="5"></span></button>
+            <button class="item" data-heading="6">標題 6<span class="k" data-key="6"></span></button>
+          </div>
+        </div>
+        <button class="tb" data-cmd="bold" data-state="bold" title="粗體"><b>B</b></button>
+        <button class="tb" data-cmd="italic" data-state="italic" title="斜體"><i>I</i></button>
+        <button class="tb" data-cmd="strike" data-state="strike" title="刪除線"><s>S</s></button>
+        <button class="tb" data-cmd="code" data-state="code" title="行內程式碼"><span class="mono">&lt;/&gt;</span></button>
+      </div>
+      <div class="grp">
+        <button class="tb" data-cmd="ul" data-state="ul" title="項目清單">•≡</button>
+        <button class="tb" data-cmd="ol" data-state="ol" title="編號清單">1.</button>
+        <button class="tb" data-cmd="task" data-state="task" title="待辦清單">☑</button>
+        <button class="tb" data-cmd="quote" data-state="quote" title="引用">❝</button>
+      </div>
+      <div class="grp">
+        <button class="tb" data-cmd="link" title="連結">🔗</button>
+        <button class="tb" data-cmd="image" title="圖片">🖼</button>
+        <div class="menu-wrap">
+          <button class="tb" id="tableBtn" title="表格">▦</button>
+          <div class="menu" id="tableMenu" hidden>
+            <div id="gridPick"></div>
+            <div id="gridLabel">選擇欄列數</div>
+          </div>
+        </div>
+        <div class="menu-wrap">
+          <button class="tb" id="codeBtn" title="程式碼區塊"><span class="mono">{ }</span></button>
+          <div class="menu" id="codeMenu" hidden>
+            <div class="label">程式碼區塊語言</div>
+            <button class="item" data-lang="">（不指定）</button>
+            <button class="item" data-lang="js">JavaScript</button>
+            <button class="item" data-lang="ts">TypeScript</button>
+            <button class="item" data-lang="json">JSON</button>
+            <button class="item" data-lang="sql">SQL</button>
+            <button class="item" data-lang="python">Python</button>
+            <button class="item" data-lang="java">Java</button>
+            <button class="item" data-lang="csharp">C#</button>
+            <button class="item" data-lang="bash">Shell</button>
+            <button class="item" data-lang="yaml">YAML</button>
+            <button class="item" data-lang="xml">XML / HTML</button>
+            <button class="item" data-lang="css">CSS</button>
+          </div>
+        </div>
+        <button class="tb" data-cmd="hr" title="水平線">―</button>
+        <button class="tb" data-cmd="pagebreak" title="分頁（PDF 從這裡換頁）">⤓</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="seg" id="modes">
+        <button data-mode="edit" title="只有編輯區">編輯</button>
+        <button data-mode="split" title="編輯與預覽">分割</button>
+        <button data-mode="preview" title="只有預覽">預覽</button>
+      </div>
+      <div class="menu-wrap">
+        <button class="tb text" id="exportBtn" title="匯出與分享">匯出 ▾</button>
+        <div class="menu right" id="exportMenu" hidden>
+          <button class="item" data-cmd="exportPdf" id="pdfItem">📄 PDF…<span class="k" data-key="P"></span></button>
+          <button class="item" data-cmd="exportHtml">🌐 HTML…</button>
+          <div class="sep"></div>
+          <button class="item" data-cmd="shareText" id="shareTextItem">⇄ 分享文字</button>
+          <button class="item" data-cmd="shareTable" id="shareTableItem">📊 用報表產生器開啟表格…</button>
+        </div>
+      </div>
+    </div>
+    <div id="banner" hidden><span class="msg"></span><span class="acts"></span></div>
+  </div>
+
+  <div id="main">
+    <textarea id="editor" spellcheck="false" placeholder="在這裡輸入 Markdown…"></textarea>
+    <div id="splitter" title="拖曳調整寬度"></div>
+    <div id="previewPane"><article id="paper" class="td-doc empty"></article></div>
+  </div>
+
+  <div id="status">
+    <span class="name" id="stName">未命名.md</span>
+    <span id="stPos">第 1 行，第 1 欄</span>
+    <span id="stWords">0 字</span>
+    <span id="stSave"></span>
+    <span class="notice" id="stNotice"></span>
+  </div>
+
+  <script src="tooldock://sdk/ui-sdk.js"></script>
+  <script src="editor-core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

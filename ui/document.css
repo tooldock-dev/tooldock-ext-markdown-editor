@@ -1,0 +1,127 @@
+/*
+ * ToolDock 文件樣式（docs/RENDER.md〈6〉）——Markdown 編輯器自帶的複本，供預覽與 HTML 匯出使用（平台 1.4.0～1.6.x 沒有 tooldock://sdk/document.css）；
+ * 內容必須與 src/sdk/document.css 相同，PDF 使用平台的那一份。
+ * 適合列印的中文文件：ctx.render.pdf({ stylesheet: 'document' }) 會在 <body> 加上 class="td-doc"；
+ * 擴充畫面的預覽可以把內容放在 <article class="td-doc"> 裡，與 ui-base.css 同時載入也不會互相影響。
+ * 固定淺色（白底黑字），不跟隨深色主題，預覽看到的就是印出來的樣子。
+ */
+
+.td-doc {
+  --td-fg: #1f2328;
+  --td-muted: #59636e;
+  --td-border: #d0d7de;
+  --td-soft: #f6f8fa;
+  --td-head: #eef1f4;
+  --td-accent: #0969da;
+  color: var(--td-fg);
+  background: #fff;
+  font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", "Noto Sans TC", -apple-system, "Segoe UI", sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.7;
+  /* break-word：放不下才斷行，不影響表格的最小欄寬（anywhere 會把數字拆成兩行） */
+  overflow-wrap: break-word;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-scheme: light;
+}
+
+.td-doc > :first-child { margin-top: 0; }
+.td-doc > :last-child { margin-bottom: 0; }
+
+/* 標題 */
+.td-doc h1, .td-doc h2, .td-doc h3, .td-doc h4, .td-doc h5, .td-doc h6 {
+  margin: 1.4em 0 .6em;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--td-fg);
+  break-after: avoid;
+  page-break-after: avoid;
+}
+.td-doc h1 { font-size: 20pt; padding-bottom: .25em; border-bottom: 1px solid var(--td-border); }
+.td-doc h2 { font-size: 16pt; padding-bottom: .2em; border-bottom: 1px solid var(--td-border); }
+.td-doc h3 { font-size: 14pt; }
+.td-doc h4 { font-size: 12pt; }
+.td-doc h5 { font-size: 11pt; }
+.td-doc h6 { font-size: 10.5pt; color: var(--td-muted); }
+
+/* 段落與行內 */
+.td-doc p, .td-doc ul, .td-doc ol, .td-doc dl, .td-doc blockquote, .td-doc pre, .td-doc table, .td-doc figure { margin: 0 0 .9em; }
+.td-doc a { color: var(--td-accent); text-decoration: none; }
+.td-doc strong, .td-doc b { font-weight: 600; }
+.td-doc del, .td-doc s { color: var(--td-muted); }
+.td-doc mark { background: #fff8c5; padding: 0 .15em; }
+.td-doc sub, .td-doc sup { line-height: 0; }
+
+/* 程式碼 */
+.td-doc code, .td-doc kbd, .td-doc samp, .td-doc pre {
+  font-family: "SF Mono", Menlo, Consolas, "Noto Sans Mono CJK TC", "PingFang TC", "Microsoft JhengHei", monospace;
+  font-size: .9em;
+}
+.td-doc :not(pre) > code {
+  padding: .1em .35em;
+  background: var(--td-soft);
+  border: 1px solid var(--td-border);
+  border-radius: 4px;
+}
+.td-doc pre {
+  padding: .8em 1em;
+  background: var(--td-soft);
+  border: 1px solid var(--td-border);
+  border-radius: 6px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow: visible;
+}
+.td-doc pre code { padding: 0; background: none; border: 0; font-size: inherit; }
+
+/* 引用 */
+.td-doc blockquote {
+  padding: .1em 1em;
+  color: var(--td-muted);
+  border-left: 4px solid var(--td-border);
+}
+
+/* 清單 */
+.td-doc ul, .td-doc ol { padding-left: 1.8em; }
+.td-doc li + li { margin-top: .2em; }
+.td-doc li > ul, .td-doc li > ol { margin: .2em 0 0; }
+.td-doc li.task-list-item, .td-doc .task-list-item { list-style: none; }
+.td-doc .task-list-item input[type="checkbox"] { margin: 0 .45em 0 -1.4em; vertical-align: -.1em; }
+
+/* 表格：表頭每頁重複、一列不拆頁 */
+.td-doc table {
+  width: auto;
+  max-width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.td-doc thead { display: table-header-group; }
+.td-doc tfoot { display: table-footer-group; }
+.td-doc tr { break-inside: avoid; page-break-inside: avoid; }
+.td-doc th, .td-doc td {
+  padding: .35em .7em;
+  border: 1px solid var(--td-border);
+  vertical-align: top;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+.td-doc th { background: var(--td-head); font-weight: 600; }
+.td-doc th[align="right"], .td-doc td[align="right"], .td-doc th[style*="right"], .td-doc td[style*="right"] { text-align: right; }
+.td-doc th[align="center"], .td-doc td[align="center"], .td-doc th[style*="center"], .td-doc td[style*="center"] { text-align: center; }
+
+/* 圖片與水平線 */
+.td-doc img, .td-doc svg, .td-doc figure { max-width: 100%; break-inside: avoid; page-break-inside: avoid; }
+.td-doc img { height: auto; }
+.td-doc figcaption { font-size: .9em; color: var(--td-muted); text-align: center; }
+.td-doc hr { height: 0; margin: 1.6em 0; border: 0; border-top: 1px solid var(--td-border); }
+
+/* 短的區塊不拆頁 */
+.td-doc blockquote, .td-doc pre { break-inside: avoid-page; }
+
+/* 強制分頁 */
+.td-doc .page-break { break-after: page; page-break-after: always; height: 0; margin: 0; border: 0; }
+@media screen {
+  .td-doc .page-break { margin: 1.5em 0; border-top: 1px dashed var(--td-border); }
+}

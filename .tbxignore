@@ -1,0 +1,13 @@
+# 打包成 .tbx 時要排除的檔案（gitignore 語法的簡化版）
+# 預設已排除：.git、.vscode、dist/、*.tbx、*.map、devDependencies
+README.md
+jsconfig.json
+test/
+# highlight.js：後端用 lib/（CommonJS），畫面與匯出用 styles/github.css；其餘不打包（保留 LICENSE）
+node_modules/highlight.js/es/
+node_modules/highlight.js/scss/
+node_modules/highlight.js/types/
+node_modules/highlight.js/styles/base16/
+node_modules/highlight.js/styles/*.png
+node_modules/highlight.js/styles/*.jpg
+node_modules/highlight.js/*.md

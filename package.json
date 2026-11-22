@@ -1,0 +1,148 @@
+{
+  "name": "markdown-editor",
+  "version": "1.0.0",
+  "description": "Markdown 編輯、即時預覽與匯出 PDF / HTML",
+  "main": "backend/index.js",
+  "private": true,
+  "scripts": {
+    "dev": "tooldock-ext dev",
+    "debug": "tooldock-ext dev --inspect",
+    "validate": "tooldock-ext validate",
+    "test": "node --test test/*.test.js",
+    "pack": "tooldock-ext pack",
+    "install-local": "tooldock-ext install"
+  },
+  "tooldock": {
+    "id": "markdown-editor",
+    "displayName": "Markdown 編輯器",
+    "description": "編輯 Markdown、即時預覽，用工具列插入常用語法；匯出 PDF（ToolDock 1.7.0 起）、HTML，表格可交給報表產生器輸出 Excel",
+    "icon": "📝",
+    "engine": "^1.4.0",
+    "activationEvents": [],
+    "contributes": {
+      "views": [
+        {
+          "id": "markdownEditor.main",
+          "title": "Markdown 編輯器",
+          "icon": "📝",
+          "entry": "ui/index.html"
+        }
+      ],
+      "commands": [
+        {
+          "id": "markdownEditor.open",
+          "title": "Markdown 編輯器：開啟"
+        },
+        {
+          "id": "markdownEditor.new",
+          "title": "Markdown 編輯器：新文件"
+        },
+        {
+          "id": "markdownEditor.openFile",
+          "title": "Markdown 編輯器：開啟檔案…"
+        },
+        {
+          "id": "markdownEditor.exportPdf",
+          "title": "Markdown 編輯器：匯出 PDF…"
+        }
+      ],
+      "configuration": {
+        "markdownEditor.defaultMode": {
+          "type": "string",
+          "default": "split",
+          "enum": [
+            "edit",
+            "split",
+            "preview"
+          ],
+          "title": "開啟時的模式",
+          "description": "edit（只有編輯區）、split（分割）、preview（只有預覽）"
+        },
+        "markdownEditor.fontSize": {
+          "type": "number",
+          "default": 14,
+          "title": "編輯區字級",
+          "description": "像素"
+        },
+        "markdownEditor.syncScroll": {
+          "type": "boolean",
+          "default": true,
+          "title": "同步捲動",
+          "description": "編輯區和預覽一起捲動"
+        },
+        "markdownEditor.pdf.pageSize": {
+          "type": "string",
+          "default": "A4",
+          "enum": [
+            "A4",
+            "A3",
+            "A5",
+            "Letter",
+            "Legal"
+          ],
+          "title": "PDF 紙張"
+        },
+        "markdownEditor.pdf.landscape": {
+          "type": "boolean",
+          "default": false,
+          "title": "PDF 橫向"
+        },
+        "markdownEditor.pdf.margin": {
+          "type": "number",
+          "default": 15,
+          "title": "PDF 邊界（公釐）"
+        },
+        "markdownEditor.pdf.header": {
+          "type": "string",
+          "default": "",
+          "title": "PDF 頁首",
+          "description": "可用 {page}、{pages}、{title}、{date}，以全形｜分隔左中右"
+        },
+        "markdownEditor.pdf.footer": {
+          "type": "string",
+          "default": "｜{page} / {pages}｜",
+          "title": "PDF 頁尾",
+          "description": "可用 {page}、{pages}、{title}、{date}，以全形｜分隔左中右"
+        },
+        "markdownEditor.pdf.allowRemote": {
+          "type": "boolean",
+          "default": false,
+          "title": "PDF 載入網路圖片",
+          "description": "預設不載入，避免文件被追蹤何時開啟"
+        }
+      },
+      "exchange": {
+        "imports": [
+          {
+            "type": "tooldock.text",
+            "handler": "importText",
+            "title": "在 Markdown 編輯器開啟",
+            "view": "markdownEditor.main",
+            "mimes": [
+              "text/markdown",
+              "text/x-markdown"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "dependencies": {
+    "highlight.js": "^11.12.0",
+    "markdown-it": "^14.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tooldock-cli": "^1.1.0",
+    "tooldock-types": "^1.1.0"
+  },
+  "keywords": [
+    "tooldock",
+    "markdown",
+    "editor",
+    "pdf",
+    "exchange",
+    "tooldock.text",
+    "tooldock.table"
+  ]
+}
